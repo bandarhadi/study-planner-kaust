@@ -153,17 +153,22 @@
       ]));
       sec.appendChild(el('hr'));
       sec.appendChild(el('div', { class: 'bar' }, [el('i', { style: 'width:' + Math.round(wd / list.length * 100) + '%' })]));
+      // Days in date order (Sunday → Saturday). On wide screens they flow into
+      // three columns, which gives the same visual grid as the Notion page.
       var cols = el('div', { class: 'cols' });
+      days(w).slice().sort(function (a, b) { return a.dayIndex - b.dayIndex; }).forEach(function (d) {
+        var box = renderDay(w, d, today, L);
+        box.style.gridColumn = String(d.dayIndex % 3 + 1);
+        box.style.gridRow = String(Math.floor(d.dayIndex / 3) + 1);
+        cols.appendChild(box);
+      });
       w.columns.forEach(function (col) {
-        var c = el('div', { class: 'col' });
         col.forEach(function (it) {
-          if (it.kind === 'day') c.appendChild(renderDay(w, it, today, L));
-          else if (it.kind === 'callout') c.appendChild(el('div', { class: 'callout' }, [
+          if (it.kind === 'callout') cols.appendChild(el('div', { class: 'callout' }, [
             el('span', { class: 'ic', 'aria-hidden': 'true', text: ICONS[it.icon] || '•' }),
             el('b', { text: it.text })
           ]));
         });
-        if (c.childNodes.length) cols.appendChild(c);
       });
       sec.appendChild(cols);
       app.appendChild(sec);

@@ -3,14 +3,18 @@ from playwright.sync_api import sync_playwright
 ROOT='/home/claude/study-planner'
 C=json.load(open(ROOT+'/content-backup/content.json',encoding='utf-8'))
 exp_todos=[];exp_days=[];exp_callouts=[];exp_weeks=[]
+DN=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
 for w in C['weeks']:
     exp_weeks.append(w['title'])
+    wd=[]
     for c in w['columns']:
         for i in c['items']:
-            if i['kind']=='day':
-                exp_days.append((i['block_id'],i['label']))
-                exp_todos+= [(t['block_id'],t['text']) for t in i['todos']]
+            if i['kind']=='day': wd.append(i)
             if i['kind']=='callout': exp_callouts.append(i['text'])
+    wd.sort(key=lambda i: next(k for k,n in enumerate(DN) if n in i['label']))  # date order
+    for i in wd:
+        exp_days.append((i['block_id'],i['label']))
+        exp_todos+= [(t['block_id'],t['text']) for t in i['todos']]
 srv=subprocess.Popen([sys.executable,'-m','http.server','8765','--bind','127.0.0.1'],cwd='/home/claude/study-planner-kaust',stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
 time.sleep(1)
 R=[]
@@ -30,7 +34,7 @@ try:
     bad=[(a,b2) for (a,b2),(c,d) in zip(ids,exp_todos) if b2!=d]; 
     if bad: print(bad[:3])
     days=pg.eval_on_selector_all('.day','els=>els.map(e=>[e.dataset.day,e.querySelector(".label").textContent])')
-    ok('35 day labels exact + order (Notion column order)',[tuple(x) for x in days]==exp_days,str(len(days)))
+    ok('35 day labels exact + in date order',[tuple(x) for x in days]==exp_days,str(len(days)))
     ok('week titles exact + order',pg.eval_on_selector_all('.week h2','e=>e.map(x=>x.textContent)')==exp_weeks)
     ok('callout texts exact',pg.eval_on_selector_all('.callout b','e=>e.map(x=>x.textContent)')==exp_callouts,str(len(exp_callouts)))
     ok('title + date range',pg.text_content('h1')=='STUDY PLANNER.' and pg.text_content('.range span')==C['header_quote']['text'])
@@ -39,6 +43,8 @@ try:
     ok('Arabic UI text shown',pg.text_content('.olabel')=='الإنجاز الكلي' and pg.text_content('button.add')=='+ إضافة مهمة')
     ok('Arabic font loaded',pg.evaluate("document.fonts.ready.then(()=>document.fonts.check('16px \"Plex Arabic\"','عربي'))") and pg.evaluate("[...document.fonts].some(f=>f.family.includes('Plex Arabic')&&f.status==='loaded')"))
     ok('original tasks stay LTR in Arabic mode',pg.eval_on_selector('.task.orig','e=>getComputedStyle(e).direction')=='ltr' and pg.eval_on_selector('.label','e=>getComputedStyle(e).direction')=='ltr')
+    dates=pg.eval_on_selector_all('.day','els=>els.map(e=>e.dataset.day)')
+    ok('days strictly chronological across all weeks',[d for d,_ in exp_days]==dates)
     ok('Arabic day names next to dates',pg.text_content('.day .date').split(' ')[0] in ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت','اليوم'])
     pg.click('button.lang')
     ok('switch to English',pg.evaluate('document.documentElement.lang')=='en' and pg.text_content('.olabel')=='Overall progress')
