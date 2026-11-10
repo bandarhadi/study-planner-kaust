@@ -11,7 +11,7 @@ for w in C['weeks']:
                 exp_days.append((i['block_id'],i['label']))
                 exp_todos+= [(t['block_id'],t['text']) for t in i['todos']]
             if i['kind']=='callout': exp_callouts.append(i['text'])
-srv=subprocess.Popen([sys.executable,'-m','http.server','8765','--bind','127.0.0.1'],cwd=ROOT+'/pwa',stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
+srv=subprocess.Popen([sys.executable,'-m','http.server','8765','--bind','127.0.0.1'],cwd='/home/claude/study-planner-kaust',stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)
 time.sleep(1)
 R=[]
 def ok(name,cond,info=''): R.append((name,bool(cond),info)); print(('PASS ' if cond else 'FAIL ')+name,info)
@@ -35,7 +35,18 @@ try:
     ok('callout texts exact',pg.eval_on_selector_all('.callout b','e=>e.map(x=>x.textContent)')==exp_callouts,str(len(exp_callouts)))
     ok('title + date range',pg.text_content('h1')=='STUDY PLANNER.' and pg.text_content('.range span')==C['header_quote']['text'])
     ok('red highlights',pg.eval_on_selector_all('.hl-red','e=>e.map(x=>x.textContent)')==['this day is the deadline','The date of the EXAM'])
-    ok('button labels "Add Task "',set(pg.eval_on_selector_all('button.add','e=>e.map(x=>x.textContent)'))=={'+ Add Task '})
+    ok('Arabic is default (lang=ar, dir=rtl)',pg.evaluate('document.documentElement.lang+document.documentElement.dir')=='arrtl')
+    ok('Arabic UI text shown',pg.text_content('.olabel')=='الإنجاز الكلي' and pg.text_content('button.add')=='+ إضافة مهمة')
+    ok('Arabic font loaded',pg.evaluate("document.fonts.ready.then(()=>document.fonts.check('16px \"Plex Arabic\"','عربي'))") and pg.evaluate("[...document.fonts].some(f=>f.family.includes('Plex Arabic')&&f.status==='loaded')"))
+    ok('original tasks stay LTR in Arabic mode',pg.eval_on_selector('.task.orig','e=>getComputedStyle(e).direction')=='ltr' and pg.eval_on_selector('.label','e=>getComputedStyle(e).direction')=='ltr')
+    ok('Arabic day names next to dates',pg.text_content('.day .date').split(' ')[0] in ['الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت','اليوم'])
+    pg.click('button.lang')
+    ok('switch to English',pg.evaluate('document.documentElement.lang')=='en' and pg.text_content('.olabel')=='Overall progress')
+    ok('button labels "Add Task " (English)',set(pg.eval_on_selector_all('button.add','e=>e.map(x=>x.textContent)'))=={'+ Add Task '})
+    ids2=pg.eval_on_selector_all('span.t[data-id]','els=>els.map(e=>[e.dataset.id,e.textContent])')
+    ok('content identical in both languages',[tuple(x) for x in ids2]==exp_todos)
+    pg.click('button.lang'); pg.reload(); pg.wait_for_selector('.task')
+    ok('language choice saved after refresh',pg.evaluate('document.documentElement.lang')=='ar')
     ok('label whitespace preserved visually',pg.eval_on_selector('.label','e=>getComputedStyle(e).whiteSpace')=='pre')
     ok('task text whitespace preserved visually',pg.eval_on_selector('span.t','e=>getComputedStyle(e).whiteSpace')=='pre-wrap')
     ok('progress starts 0 / 57',pg.text_content('.overall .num').startswith('0 / 57'))
@@ -57,7 +68,7 @@ try:
     # mobile layout
     ok('no horizontal overflow at 390px',pg.evaluate('document.documentElement.scrollWidth')<=390,str(pg.evaluate('document.documentElement.scrollWidth')))
     ok('tap targets >= 44px',pg.eval_on_selector('.task','e=>e.getBoundingClientRect().height')>=44)
-    pg.evaluate('window.scrollTo(0,0)'); pg.screenshot(path='/tmp/m1.png')
+    pg.evaluate('window.scrollTo(0,0)'); pg.screenshot(path='/tmp/m1.png'); pg.click('button.add >> nth=0'); pg.fill('#add-input','مراجعة الملخص'); pg.keyboard.press('Enter'); pg.locator('#w1').scroll_into_view_if_needed(); pg.screenshot(path='/tmp/m5.png'); pg.locator('.task.mine .del').click()
     pg.locator('#w2').scroll_into_view_if_needed(); pg.screenshot(path='/tmp/m2.png')
     # PWA
     m=pg.evaluate('fetch("manifest.webmanifest").then(r=>r.json())')

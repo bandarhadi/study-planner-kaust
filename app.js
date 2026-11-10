@@ -2,13 +2,48 @@
   'use strict';
   var P = window.PLANNER;
   var KEY = 'study-planner:v1';
+  var LANG_KEY = 'study-planner:lang';
   var ICONS = {
     '/icons/bell-notification_yellow.svg': '🔔',
     '/icons/arrows-swap-vertically_green.svg': '↕️',
     '/icons/aquarius_blue.svg': '♒',
     '/icons/bookmark_brown.svg': '🔖'
   };
-  var MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  /* ---------- interface text (original Notion content is never translated) ---------- */
+  var T = {
+    en: {
+      switchTo: 'عربي', switchLabel: 'التبديل إلى العربية',
+      overall: 'Overall progress', personal: function (a, b) { return 'Personal tasks: ' + a + ' / ' + b + ' done'; },
+      week: function (n) { return 'Week 0' + n; }, today: 'Today',
+      months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      days: null,
+      addBtn: function (orig) { return '+ ' + orig; },
+      placeholder: 'New personal task', add: 'Add', cancel: 'Cancel', tag: 'personal',
+      markDone: 'Mark as done', del: 'Delete personal task', weeksNav: 'Weeks',
+      foot: 'Progress is saved on this device.'
+    },
+    ar: {
+      switchTo: 'English', switchLabel: 'Switch to English',
+      overall: 'الإنجاز الكلي', personal: function (a, b) { return 'المهام الشخصية: ' + a + ' من ' + b + ' منجزة'; },
+      week: function (n) { return 'الأسبوع ' + n; }, today: 'اليوم',
+      months: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'],
+      days: ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
+      addBtn: function () { return '+ إضافة مهمة'; },
+      placeholder: 'مهمة شخصية جديدة', add: 'إضافة', cancel: 'إلغاء', tag: 'شخصية',
+      markDone: 'تم', del: 'حذف المهمة الشخصية', weeksNav: 'الأسابيع',
+      foot: 'تقدّمك محفوظ على هذا الجهاز.'
+    }
+  };
+  var lang = loadLang();
+  function loadLang() {
+    try { var v = localStorage.getItem(LANG_KEY); if (v === 'ar' || v === 'en') return v; } catch (e) {}
+    return 'ar';
+  }
+  function applyLang() {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  }
 
   /* ---------- state (localStorage) ---------- */
   // done: { originalTaskBlockId: true }   personal: { dayBlockId: [{id, text, done}] }
@@ -74,6 +109,7 @@
   var adding = null; // dayId currently showing the add field
 
   function render() {
+    var L = T[lang];
     var y = window.scrollY;
     app.textContent = '';
     var today = new Date();
@@ -81,23 +117,30 @@
     var pc = personalCounts();
     var cw = currentWeekId();
 
-    app.appendChild(el('h1', { text: P.title }));
-    app.appendChild(el('div', { class: 'range' }, [el('span', { text: P.quote })]));
+    app.appendChild(el('div', { class: 'top' }, [
+      el('h1', {}, [el('span', { class: 'ltr', text: P.title })]),
+      el('button', { class: 'lang', type: 'button', 'data-act': 'lang', lang: lang === 'ar' ? 'en' : 'ar', 'aria-label': L.switchLabel, text: L.switchTo })
+    ]));
+    app.appendChild(el('div', { class: 'range' }, [el('span', { class: 'ltr', text: P.quote })]));
 
     var bar = el('div', { class: 'bar' }, [el('i', { style: 'width:' + pct + '%' })]);
     var num = el('div', { class: 'num' });
-    num.appendChild(document.createTextNode(done + ' / ' + total + ' '));
+    num.appendChild(el('span', { class: 'ltr', text: done + ' / ' + total }));
+    num.appendChild(document.createTextNode(' '));
     num.appendChild(el('small', { text: '(' + pct + '%)' }));
-    app.appendChild(el('section', { class: 'overall', 'aria-label': 'Overall progress' }, [
-      el('div', { class: 'row' }, [el('span', { class: 'olabel', text: 'Overall progress' }), num]),
+    app.appendChild(el('section', { class: 'overall', 'aria-label': L.overall }, [
+      el('div', { class: 'row' }, [el('span', { class: 'olabel', text: L.overall }), num]),
       bar,
-      pc[1] ? el('div', { class: 'extra', text: 'Personal tasks: ' + pc[0] + ' / ' + pc[1] + ' done' }) : null
+      pc[1] ? el('div', { class: 'extra', text: L.personal(pc[0], pc[1]) }) : null
     ]));
 
-    var jump = el('nav', { class: 'jump', 'aria-label': 'Weeks' });
+    var jump = el('nav', { class: 'jump', 'aria-label': L.weeksNav });
     P.weeks.forEach(function (w, i) {
       var p = originals(w);
-      jump.appendChild(el('a', { href: '#w' + (i + 1), class: w.id === cw ? 'now' : '', text: 'Week 0' + (i + 1) + ' · ' + countDone(p) + '/' + p.length }));
+      var a = el('a', { href: '#w' + (i + 1), class: w.id === cw ? 'now' : '' });
+      a.appendChild(document.createTextNode(L.week(i + 1) + ' · '));
+      a.appendChild(el('span', { class: 'ltr', text: countDone(p) + '/' + p.length }));
+      jump.appendChild(a);
     });
     app.appendChild(jump);
 
@@ -106,7 +149,7 @@
       var sec = el('section', { class: 'week', id: 'w' + (i + 1), 'data-week': w.id });
       sec.appendChild(el('div', { class: 'week-head' }, [
         el('h2', { text: w.title }),
-        el('span', { class: 'wprog', text: wd + ' / ' + list.length })
+        el('span', { class: 'wprog' }, [el('span', { class: 'ltr', text: wd + ' / ' + list.length })])
       ]));
       sec.appendChild(el('hr'));
       sec.appendChild(el('div', { class: 'bar' }, [el('i', { style: 'width:' + Math.round(wd / list.length * 100) + '%' })]));
@@ -114,7 +157,7 @@
       w.columns.forEach(function (col) {
         var c = el('div', { class: 'col' });
         col.forEach(function (it) {
-          if (it.kind === 'day') c.appendChild(renderDay(w, it, today));
+          if (it.kind === 'day') c.appendChild(renderDay(w, it, today, L));
           else if (it.kind === 'callout') c.appendChild(el('div', { class: 'callout' }, [
             el('span', { class: 'ic', 'aria-hidden': 'true', text: ICONS[it.icon] || '•' }),
             el('b', { text: it.text })
@@ -125,20 +168,20 @@
       sec.appendChild(cols);
       app.appendChild(sec);
     });
-    app.appendChild(el('p', { class: 'foot', text: 'Progress is saved on this device.' }));
+    app.appendChild(el('p', { class: 'foot', text: L.foot }));
     window.scrollTo(0, y);
     if (adding) { var inp = document.getElementById('add-input'); if (inp) inp.focus(); }
   }
 
-  function renderDay(w, d, today) {
+  function renderDay(w, d, today, L) {
     var dt = dateOf(w, d), isToday = sameDay(dt, today);
     var box = el('div', { class: 'day' + (isToday ? ' today' : ''), 'data-day': d.id });
-    box.appendChild(el('span', { class: 'label', style: 'background:var(--' + d.color + ')', text: d.label }));
-    var meta = el('div', { class: 'daymeta' }, [
-      el('span', { class: 'date', text: (isToday ? 'Today · ' : '') + dt.getDate() + ' ' + MON[dt.getMonth()] }),
-      el('button', { class: 'add', type: 'button', 'data-act': 'add', 'data-day': d.id, text: '+ ' + d.button })
-    ]);
-    box.appendChild(meta);
+    box.appendChild(el('span', { class: 'label ltr', style: 'background:var(--' + d.color + ')', text: d.label }));
+    var dateText = (isToday ? L.today + ' · ' : '') + (L.days ? L.days[d.dayIndex] + ' ' : '') + dt.getDate() + ' ' + L.months[dt.getMonth()];
+    box.appendChild(el('div', { class: 'daymeta' }, [
+      el('span', { class: 'date', text: dateText }),
+      el('button', { class: 'add', type: 'button', 'data-act': 'add', 'data-day': d.id, text: L.addBtn(d.button) })
+    ]));
 
     d.todos.forEach(function (t) {
       var txt = el('span', { class: 't', 'data-id': t.id });
@@ -146,26 +189,26 @@
         if (s[1] && s[1].length) txt.appendChild(el('span', { class: 'hl-' + s[1][0], text: s[0] }));
         else txt.appendChild(document.createTextNode(s[0]));
       });
-      var cb = el('input', { type: 'checkbox', 'data-act': 'toggle', 'data-id': t.id, 'aria-label': 'Mark as done' });
+      var cb = el('input', { type: 'checkbox', 'data-act': 'toggle', 'data-id': t.id, 'aria-label': L.markDone });
       cb.checked = !!state.done[t.id];
-      box.appendChild(el('label', { class: 'task' + (cb.checked ? ' done' : '') }, [cb, txt]));
+      box.appendChild(el('label', { class: 'task orig' + (cb.checked ? ' done' : '') }, [cb, txt]));
     });
 
     (state.personal[d.id] || []).forEach(function (t) {
-      var cb = el('input', { type: 'checkbox', 'data-act': 'ptoggle', 'data-day': d.id, 'data-id': t.id, 'aria-label': 'Mark as done' });
+      var cb = el('input', { type: 'checkbox', 'data-act': 'ptoggle', 'data-day': d.id, 'data-id': t.id, 'aria-label': L.markDone });
       cb.checked = !!t.done;
-      var txt = el('span', { class: 't' }, [document.createTextNode(t.text), el('span', { class: 'tag', text: 'personal' })]);
+      var txt = el('span', { class: 't', dir: 'auto' }, [document.createTextNode(t.text), el('span', { class: 'tag', text: L.tag })]);
       box.appendChild(el('div', { class: 'task mine' + (t.done ? ' done' : '') }, [
         el('label', { style: 'display:flex;gap:12px;flex:1;min-width:0;align-items:flex-start;cursor:pointer' }, [cb, txt]),
-        el('button', { class: 'del', type: 'button', 'data-act': 'pdel', 'data-day': d.id, 'data-id': t.id, 'aria-label': 'Delete personal task', text: '×' })
+        el('button', { class: 'del', type: 'button', 'data-act': 'pdel', 'data-day': d.id, 'data-id': t.id, 'aria-label': L.del, text: '×' })
       ]));
     });
 
     if (adding === d.id) {
       box.appendChild(el('form', { class: 'addrow', 'data-day': d.id }, [
-        el('input', { id: 'add-input', type: 'text', placeholder: 'New personal task', autocomplete: 'off', enterkeyhint: 'done', maxlength: '200' }),
-        el('button', { type: 'submit', text: 'Add' }),
-        el('button', { type: 'button', class: 'cancel', 'data-act': 'cancel', text: 'Cancel' })
+        el('input', { id: 'add-input', type: 'text', dir: 'auto', placeholder: L.placeholder, autocomplete: 'off', enterkeyhint: 'done', maxlength: '200' }),
+        el('button', { type: 'submit', text: L.add }),
+        el('button', { type: 'button', class: 'cancel', 'data-act': 'cancel', text: L.cancel })
       ]));
     }
     return box;
@@ -189,7 +232,12 @@
     var b = e.target.closest('button[data-act]');
     if (!b) return;
     var act = b.getAttribute('data-act');
-    if (act === 'add') { adding = b.getAttribute('data-day'); render(); }
+    if (act === 'lang') {
+      lang = lang === 'ar' ? 'en' : 'ar';
+      try { localStorage.setItem(LANG_KEY, lang); } catch (err) {}
+      applyLang(); render();
+    }
+    else if (act === 'add') { adding = b.getAttribute('data-day'); render(); }
     else if (act === 'cancel') { adding = null; render(); }
     else if (act === 'pdel') {
       var day = b.getAttribute('data-day'), id = b.getAttribute('data-id');
@@ -212,8 +260,12 @@
     if (e.key === 'Escape' && adding) { adding = null; render(); }
   });
   // other open tabs / app instances stay in sync
-  window.addEventListener('storage', function (e) { if (e.key === KEY) { state = load(); render(); } });
+  window.addEventListener('storage', function (e) {
+    if (e.key === KEY) { state = load(); render(); }
+    if (e.key === LANG_KEY) { lang = loadLang(); applyLang(); render(); }
+  });
 
+  applyLang();
   render();
   // on first open, jump to the current week
   var cw = currentWeekId();
