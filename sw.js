@@ -1,5 +1,5 @@
 // Offline cache for the app shell. Bump VERSION whenever any file below changes.
-var VERSION = 'study-planner-v1';
+var VERSION = 'study-planner-v2';
 var FILES = [
   './',
   'index.html',
@@ -11,7 +11,13 @@ var FILES = [
   'icons/icon-512.png',
   'icons/icon-maskable-512.png',
   'icons/apple-touch-icon.png',
-  'icons/favicon-32.png'
+  'icons/favicon-32.png',
+  'fonts/plex-arabic-400.woff2',
+  'fonts/plex-arabic-500.woff2',
+  'fonts/plex-arabic-700.woff2',
+  'fonts/plex-latin-400.woff2',
+  'fonts/plex-latin-500.woff2',
+  'fonts/plex-latin-700.woff2'
 ];
 
 self.addEventListener('install', function (e) {
