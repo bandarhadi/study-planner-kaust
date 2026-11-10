@@ -1,0 +1,76 @@
+[
+  {
+    "role": "page_icon",
+    "file_name": "IMG_8055.png",
+    "source": "attachment:62220c88-ffce-4df3-94ff-ac522ac36262:IMG_8055.png",
+    "size": "unknown",
+    "downloaded": false
+  },
+  {
+    "role": "page_cover",
+    "file_name": "IMG_8056.png",
+    "source": "attachment:33b64172-78b2-4960-95fa-089fb0a8289d:IMG_8056.png",
+    "size": "unknown",
+    "downloaded": false
+  },
+  {
+    "role": "image_block",
+    "location": "Week 01 [8-14 NOV]",
+    "block_id": "413841e6-d119-80ff-86d7-db2eed9cd80f",
+    "file_name": "IMG_8104.PNG",
+    "size": "876.8 KiB",
+    "source": "attachment:c8883ddc-8833-4304-bb77-5a1d398fe828:IMG_8104.png",
+    "display_width": 288,
+    "downloaded": false
+  },
+  {
+    "role": "image_block",
+    "location": "Week 02 [15-21 NOV]",
+    "block_id": "2ea841e6-d119-83ae-b632-01781553e659",
+    "file_name": "IMG_8113.PNG",
+    "size": "554.6 KiB",
+    "source": "attachment:c3410546-f544-44fe-a4c5-bd17185ae1d9:37ccf5ea-d0b8-4add-8ff1-7c8a4a04c65e.png",
+    "display_width": 300.55930568948895,
+    "downloaded": false
+  },
+  {
+    "role": "image_block",
+    "location": "Week 03 [22-28 NOV]",
+    "block_id": "389841e6-d119-82c7-9c01-0151cd69f4f2",
+    "file_name": "IMG_8115.PNG",
+    "size": "687.9 KiB",
+    "source": "attachment:15a7cb4a-e0ef-4d74-a7e0-53c279725f6a:IMG_8115.png",
+    "display_width": 288,
+    "downloaded": false
+  },
+  {
+    "role": "image_block",
+    "location": "Week 04 [29 NOV - 5 DEC]",
+    "block_id": "abd841e6-d119-8363-a05b-01cf6b3295e1",
+    "file_name": "IMG_8114.PNG",
+    "size": "683.6 KiB",
+    "source": "attachment:e94c3764-a92e-415c-9645-ce4382f1e745:IMG_8114.png",
+    "display_width": 288,
+    "downloaded": false
+  },
+  {
+    "role": "image_block",
+    "location": "Week 05 [6-12 DEC]",
+    "block_id": "0e9841e6-d119-82fc-b7c8-010945d47434",
+    "file_name": "الشخصيتان_بدون_خلفية.png",
+    "size": "297.6 KiB",
+    "source": "attachment:5f7b7580-2180-4274-b25a-878f0f335e1c:__.png",
+    "display_width": 240,
+    "downloaded": false
+  },
+  {
+    "role": "image_block",
+    "location": "footer",
+    "block_id": "413841e6-d119-8061-8294-fdeac0cc0f53",
+    "file_name": "IMG_8108.PNG",
+    "size": "1.4 MiB",
+    "source": "attachment:9772e498-e369-4dad-b220-78a6f6901d17:IMG_8108.png",
+    "display_width": 1008,
+    "downloaded": false
+  }
+]
