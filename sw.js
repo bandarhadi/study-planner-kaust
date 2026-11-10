@@ -1,5 +1,5 @@
 // Offline cache for the app shell. Bump VERSION whenever any file below changes.
-var VERSION = 'study-planner-v3';
+var VERSION = 'study-planner-v4';
 var FILES = [
   './',
   'index.html',

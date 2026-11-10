@@ -51,7 +51,8 @@ h1{font-family:var(--serif);font-size:32px;line-height:1.15;margin:8px 0 10px;le
 .week hr{border:0;border-top:1px solid var(--line);margin:8px 0 6px}
 .week .bar{margin:0 0 16px;height:4px}
 .cols{display:grid;grid-template-columns:1fr;gap:0 22px}
-@media (min-width:760px){.cols{grid-template-columns:1.10fr 1.10fr .94fr 1.06fr}}
+@media (max-width:759px){.cols .day{grid-column:auto!important;grid-row:auto!important}}
+@media (min-width:760px){.cols{grid-template-columns:1.10fr 1.10fr .94fr 1.06fr;align-items:start}.cols .callout{grid-column:4;grid-row:1 / span 3}}
 .col{min-width:0}
 
 /* day */
